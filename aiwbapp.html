@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+       title {
+        background-color: #000;
+       }
+       body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            background-color: #000;
+            display: block;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const box = 20; // Size of each segment
+        const rows = canvas.height / box;
+        const cols = canvas.width / box;
+
+        let snake = [{ x: 5, y: 5 }];
+        let food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+        let direction = null;
+        let score = 0;
+
+        // Draw a square (snake or food)
+        function drawSquare(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * box, y * box, box, box);
+            ctx.strokeStyle = "#333";
+            ctx.strokeRect(x * box, y * box, box, box);
+        }
+
+        // Draw the game (snake, food, and score)
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw food
+            drawSquare(food.x, food.y, "red");
+
+            // Draw snake
+            snake.forEach((segment, index) => {
+                drawSquare(segment.x, segment.y, index === 0 ? "green" : "lime");
+            });
+
+            // Draw score
+            ctx.fillStyle = "white";
+            ctx.font = "16px Arial";
+            ctx.fillText("Score: " + score, 10, canvas.height - 10);
+        }
+
+        // Move the snake
+        function moveSnake() {
+            if (!direction) return;
+
+            const head = { ...snake[0] };
+
+            if (direction === "LEFT") head.x -= 1;
+            if (direction === "RIGHT") head.x += 1;
+            if (direction === "UP") head.y -= 1;
+            if (direction === "DOWN") head.y += 1;
+
+            // Check for collisions with walls
+            if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) {
+                alert("Game Over! Final Score: " + score);
+                resetGame();
+                return;
+            }
+
+            // Check for collisions with self
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                alert("Game Over! Final Score: " + score);
+                resetGame();
+                return;
+            }
+
+            // Add the new head to the snake
+            snake.unshift(head);
+
+            // Check if snake eats food
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+            } else {
+                snake.pop(); // Remove the tail
+            }
+        }
+
+        // Reset the game
+        function resetGame() {
+            snake = [{ x: 5, y: 5 }];
+            food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+            direction = null;
+            score = 0;
+        }
+
+        // Change direction based on keypress
+        document.addEventListener("keydown", event => {
+            if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+            if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+            if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+            if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+        });
+
+        // Game loop
+        function gameLoop() {
+            moveSnake();
+            drawGame();
+        }
+
+        setInterval(gameLoop, 100);
+    </script>
+</body>
+</html>
